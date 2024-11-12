@@ -57,7 +57,6 @@ class GalaxyAPI:
                 _remove_unused_params(params))
         page_num = 1
         _log(f'{api_url}: Start')
-
         while next_link is not None:  # pragma: no branch
             try:
                 result = self._session.get(next_link, timeout=30)
@@ -92,7 +91,6 @@ class GalaxyAPI:
 
             yield result.text
             page_num += 1
-
         _log(f'{api_url}: Done')
 
     def load_pages(
@@ -105,6 +103,7 @@ class GalaxyAPI:
         yield from (
                 GalaxyAPIPage(page_name, page_num + 1, page)
                 for page_num, page in enumerate(page_it))
+
 
     def load_role(self, role_id: int) -> Optional[Dict[str, object]]:
         try:

@@ -53,7 +53,7 @@ _WrapperType = Union[
         _SubWrapperType[ResultType]]
 
 
-class _ConfigOption(NamedTuple, Generic[_OptionType]):
+class _ConfigOption(NamedTuple):
     name: str
     type_: _OptionType
     option: Option[_OptionType]
