@@ -83,8 +83,8 @@ class GalaxyAPI:
                     page_num += 1
                     continue
 
-            if (next_path := json.get('next_link', None)) is not None:
-                next_link = 'https://galaxy.ansible.com' + next_path
+            if (next_path := json.get('next', None)) is not None:
+                next_link = next_path
             else:
                 # End of results
                 next_link = None
