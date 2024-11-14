@@ -14,16 +14,16 @@ from services.galaxy import GalaxyAPI
 
 
 API_URLS = {
-    'namespaces': 'https://galaxy.ansible.com/api/v1/namespaces/',
-    'platforms': 'https://galaxy.ansible.com/api/v1/platforms/',
-    'provider_namespaces': 'https://galaxy.ansible.com/api/v1/provider_namespaces/',
-    'repositories': 'https://galaxy.ansible.com/api/v1/repositories/',
+    # 'namespaces': 'https://galaxy.ansible.com/api/v1/namespaces/',
+    # 'platforms': 'https://galaxy.ansible.com/api/v1/platforms/',
+    # 'provider_namespaces': 'https://galaxy.ansible.com/api/v1/provider_namespaces/',
+    # 'repositories': 'https://galaxy.ansible.com/api/v1/repositories/',
     'roles': 'https://galaxy.ansible.com/api/v1/roles/',
-    'role_search': 'https://galaxy.ansible.com/api/v1/search/roles/',
-    'tags': 'https://galaxy.ansible.com/api/v1/tags/',
+    # 'role_search': 'https://galaxy.ansible.com/api/v1/search/roles/',
+    # 'tags': 'https://galaxy.ansible.com/api/v1/tags/',
     # 'users': 'https://galaxy.ansible.com/api/v1/users/',
-    'community_surveys': 'https://galaxy.ansible.com/api/v1/community_surveys/repository/',
-    'content': 'https://galaxy.ansible.com/api/v1/content/',  # Mainly for more detailed quality scores.
+    # 'community_surveys': 'https://galaxy.ansible.com/api/v1/community_surveys/repository/',
+    # 'content': 'https://galaxy.ansible.com/api/v1/content/',  # Mainly for more detailed quality scores.
 }
 
 PAGE_SIZES = {
@@ -108,12 +108,12 @@ class GalaxyScrape(Stage[GalaxyAPIPage, MainConfig]):
             results.append(page)
 
         pbar.close()
-
         self.save_pages(results)
         return results
 
     def save_pages(self, results: List[GalaxyAPIPage]) -> None:
         dataset_dir_path = self.config.output_directory / self.dataset_dir_name
+        os.makedirs(dataset_dir_path, exist_ok=True)
         for page in results:
             page.dump(dataset_dir_path)
 
