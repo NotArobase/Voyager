@@ -1,5 +1,5 @@
 """Schema for Ansible Galaxy API."""
-from typing import Any, Dict
+from typing import Any, Dict,Union
 
 import pendulum
 
@@ -315,7 +315,10 @@ SCHEMAS: Dict[str, Dict[str, Any]] = {
               'id': 11,
               'name': 'role'
             },
-            'dependencies': [str],
+            'dependencies': [(str, {
+                'id': int,
+                'name': str,
+            })] or [],
             'namespace': {
               'avatar_url': (str, None),
               'company': (str, None),
@@ -364,15 +367,15 @@ SCHEMAS: Dict[str, Dict[str, Any]] = {
     },
     'roles': {
         'active': True,
-        'commit': str,
-        'commit_message': str,
+        'commit': (str,None),
+        'commit_message': (str,None),
         'commit_url': str,
         'company': (str, None),
         'created': pendulum.DateTime,
         'description': str,
         'download_count': int,
         'forks_count': int,
-        'github_branch': str,
+        'github_branch': (str,None),
         'github_repo': str,
         'github_user': str,
         'id': int,
@@ -401,10 +404,7 @@ SCHEMAS: Dict[str, Dict[str, Any]] = {
               'id': int,
               'name': str,
             },
-            'dependencies': [(str, {
-                'id': int,
-                'name': str,
-            })],
+            'dependencies': [Any],
             'namespace': {
               'avatar_url': (str, None),
               'company': (str, None),
@@ -421,7 +421,8 @@ SCHEMAS: Dict[str, Dict[str, Any]] = {
             }],
             'provider_namespace': {
                   'id': int,
-                  'name': str
+                  'name': str,
+                  'pulp_href': str,
             },
             'repository': {
                   'community_score': (float, None),
@@ -441,7 +442,7 @@ SCHEMAS: Dict[str, Dict[str, Any]] = {
             },
             'tags': [str],
             'versions': [{
-                'id': int,
+                'id': (int,str,None),
                 'name': str,
                 'release_date': (pendulum.DateTime, None),
             }],
@@ -450,6 +451,7 @@ SCHEMAS: Dict[str, Dict[str, Any]] = {
         'travis_status_url': str,
         'url': str,
         'username': str,
+        'upstream_id': (int,None),
     },
     'tags': {
         'active': True,

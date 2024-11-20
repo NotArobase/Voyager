@@ -2,6 +2,7 @@
 from typing import Any, Dict, Iterator, Mapping, Sequence, Set, cast
 
 import itertools
+import os
 
 from tqdm import tqdm
 
@@ -12,6 +13,8 @@ from models.serialize import CONVERTER
 from pipeline.base import ResultMap, Stage, CacheMiss
 from pipeline.collect.galaxy_scrape import GalaxyScrape
 
+def _log(s: str) -> None:
+    tqdm.write(s)
 
 from pprint import pprint
 
@@ -50,7 +53,7 @@ class ExtractRoleMetadata(
     def store_in_dataset(self, results: ResultMap[GalaxyMetadata]) -> None:
         """Store the results of a stage in the dataset."""
         dataset_dir_path = self.config.output_directory / self.dataset_dir_name
-        dataset_dir_path.mkdir(exist_ok=True, parents=True)
+        os.makedirs(dataset_dir_path, exist_ok=True)
         results['dummy'].dump(dataset_dir_path)
 
     def load_from_dataset(self) -> ResultMap[GalaxyMetadata]:
