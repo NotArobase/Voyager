@@ -97,12 +97,12 @@ class MetadataMap:
             matched = False
             for possibility in schema:
                 try:
-                    print(f"Attempting to $$match {obj} with {possibility}")
+                    # print(f"Attempting to $$match {obj} with {possibility}")
                     self._verify_individual(obj, possibility)
                     matched = True
                     break  # Passed
                 except AssertionError as e:
-                    print(f"Failed matching {obj} with {possibility}: {e}")
+                    # print(f"Failed matching {obj} with {possibility}: {e}")
                     continue  # Try the next possibility
                 except Exception as e:
                     print(f"Unexpected error during matching {obj} with {possibility}: {e}")
@@ -639,23 +639,23 @@ class Role(GalaxyEntity):
     username: Optional[str]
     description: Optional[str]
     company: Optional[str]
-    is_valid: bool
-    license: str
+    # is_valid: bool
+    # license: str
     min_ansible_version: Optional[str]
     role_type: Optional[str]
     dependencies: List[str]
-    supported_platforms: List[Platform]
+    # supported_platforms: List[Platform]
     download_count: int
-    download_rank: Optional[float]
+    # download_rank: Optional[float]
     tags: List[str]
     versions: List[RoleVersion]
 
     commit_sha: str
     commit_message: str
 
-    namespace_id: XrefID
-    provider_namespace_id: XrefID
-    # repository_id: XrefID
+    namespace_id: int
+    provider_namespace_id: int
+    repository_name: str
 
     creation_date: pendulum.DateTime
     modification_date: pendulum.DateTime
@@ -667,8 +667,7 @@ class Role(GalaxyEntity):
 
     @classmethod
     def from_galaxy_json(  # type: ignore[misc, override]
-            cls, json: Dict[str, Any], repos: Dict[int, Repository],
-            role_pages: Dict[str, Any]
+            cls, json: Dict[str, Any], repos: Dict[int, Repository]
     ) -> Role:
         # Sanity checks
         smry = json.get('summary_fields', {})
@@ -703,10 +702,14 @@ class Role(GalaxyEntity):
         attrs['commit_sha'] = json['commit']
         attrs['commit_message'] = json['commit_message']
 
-        attrs['namespace_id'] = XrefID(Namespace, namespace_info.get('id', -1))
-        attrs['provider_namespace_id'] = XrefID(
-            ProviderNamespace, provider_namespace_info.get('id', -1)
-        )
+        
+        attrs['namespace_id'] = namespace_info.get('id', -1)
+        attrs['provider_namespace_id'] = provider_namespace_info.get('id', -1)
+        attrs['repository_name'] = repository_info.get('name', -1)
+        # attrs['namespace_id'] = XrefID(Namespace, namespace_info.get('id', -1))
+        # attrs['provider_namespace_id'] = XrefID(
+        #     ProviderNamespace, provider_namespace_info.get('id', -1)
+        # )
         # attrs['repository_id'] = XrefID(Repository, repository_info.get('id', -1))  # Don't change this attribute
 
         _extend_with_dates(attrs, json)
@@ -807,7 +810,7 @@ def _create_all(
     for entity_json in json_entities:
         try:
             entity = entity_type.from_galaxy_json(entity_json, extraargs)  # type: ignore[call-arg]
-            entities[entity.entityid] = entity  # type: ignore[attr-defined]
+            entities[entity.entity_id] = entity  # type: ignore[attr-defined]
         except Exception as e:
             print(f"{e}")  # Corrected attribute name
             continue  # Skip the problematic entity and proceed
