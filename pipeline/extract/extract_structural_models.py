@@ -59,7 +59,7 @@ class ExtractStructuralModels(
         results: List[MultiStructuralRoleModel] = []
         failures = 0
         for repo, role_name, revs in task_list:
-            git_repo_obj = git.Repo(self.config.output_directory / 'Repositories' / repo.path)
+            git_repo_obj = git.Repo(repo.path)
             save_branch = git_repo_obj.active_branch
             role_models = []
             try:
@@ -113,7 +113,7 @@ class ExtractStructuralModels(
     ) -> List[Tuple[GitRepo, str, List[Tuple[str, str]]]]:
         results = []
         for role in role_meta['dummy'].roles.values():
-            repo_id = str(role.repository_id)
+            repo_id = 'Repository:' + str(role.entity_id)
             if repo_id not in clone:
                 continue
             git_repo = clone[repo_id]

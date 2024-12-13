@@ -6,6 +6,8 @@ import click
 
 from util.config import Config, Option
 
+from typing import Optional
+
 
 class MainConfig(Config):
     """Global configurations for all commands."""
@@ -24,6 +26,11 @@ class MainConfig(Config):
             default=Path('data'), final=True)
     force: Option[bool] = Option(
             'Force regeneration of cached results', default=False)
+    max_roles: Option[int] = Option(
+        '--max-roles', 
+        default=None,  # Default to None to indicate no limit
+        required=False,
+    )
 
     @property
     def output_directory(self) -> Path:

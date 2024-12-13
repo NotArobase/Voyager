@@ -25,7 +25,7 @@ class ExtractGitMetadata(Stage[GitRepoMetadata, MainConfig], requires=Clone):
         return ResultMap(map(self.extract_meta, repos))
 
     def extract_meta(self, git_repo: GitRepo) -> GitRepoMetadata:
-        repo_ref = git.Repo(self.config.output_directory / git_repo.path)
+        repo_ref = git.Repo(git_repo.path)
 
         return GitRepoMetadata(
                 repo_owner=git_repo.owner, repo_name=git_repo.name,
