@@ -454,7 +454,7 @@ class ProviderNamespace(GalaxyEntity):
 class Repository(GalaxyEntity):
     """Model for Galaxy Repository."""
 
-    # entity_id: int
+    entity_id: int
 
     owner: str
 
@@ -520,7 +520,7 @@ class Repository(GalaxyEntity):
 
         attrs: Dict[str, Any] = {}
 
-        # attrs['entity_id'] = json['id']
+        attrs['entity_id'] = json['id']
         attrs['name'] = repo['name']
         attrs['original_name'] = repo['original_name']
         attrs['owner'] = json['github_user']
@@ -811,17 +811,11 @@ def _create_all(
         entity_type: Type[_EntityType],
         **extraargs: Any
 ) -> Dict[int, _EntityType]:
-    print(entity_type)
     entities = {}
     for entity_json in json_entities:
         try:
-            print(entity_type)
-            if entity_type == Repository:
-                entity = entity_type.from_galaxy_json(entity_json, extraargs)
-                entities[entity.name] = entity
-            else:
-                entity = entity_type.from_galaxy_json(entity_json, extraargs)  # type: ignore[call-arg]
-                entities[entity.entity_id] = entity  # type: ignore[attr-defined]
+            entity = entity_type.from_galaxy_json(entity_json, extraargs)  # type: ignore[call-arg]
+            entities[entity.entity_id] = entity  # type: ignore[attr-defined]
         except Exception as e:
             print(f"{e}")  # Corrected attribute name
             continue  # Skip the problematic entity and proceed
