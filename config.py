@@ -26,17 +26,20 @@ class MainConfig(Config):
             default=Path('data'), final=True)
     force: Option[bool] = Option(
             'Force regeneration of cached results', default=False)
-    max_roles: Option[int] = Option(
-        '--max-roles', 
-        default=None,  # Default to None to indicate no limit
-        required=False,
-    )
 
     @property
     def output_directory(self) -> Path:
         """Get the output directory."""
         return self.output / self.dataset
 
+class GalaxyScrapeConfig(MainConfig):
+        """Configuration for scraping Galaxy roles."""
+        
+        max_roles: Option[int] = Option(
+        '--max-roles', 
+        default=None,  # Default to None to indicate no limit
+        required=False,
+    )
 
 class ExtractRoleMetadataConfig(MainConfig):
     """Configuration for role metadata extraction."""
