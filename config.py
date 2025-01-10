@@ -26,6 +26,8 @@ class MainConfig(Config):
             default=Path('data'), final=True)
     force: Option[bool] = Option(
             'Force regeneration of cached results', default=False)
+    delete: Option[bool] = Option(
+                'Delete the output directory before running', default=False)
 
     @property
     def output_directory(self) -> Path:
@@ -33,9 +35,10 @@ class MainConfig(Config):
         return self.output / self.dataset
 
 class GalaxyScrapeConfig(MainConfig):
-        """Configuration for scraping Galaxy roles."""
-        
-        max_roles: Option[int] = Option(
+    """Configuration for galaxy scraping."""
+
+    # New option to limit the number of roles imported
+    max_roles: Option[int] = Option(
         '--max-roles', 
         default=None,  # Default to None to indicate no limit
         required=False,
@@ -59,4 +62,7 @@ class ExtractStructuralModelsConfig(MainConfig):
 
     commits: Option[bool] = Option(
             'Extract a structural model for each commit. If disabled, extracts for semantic versions only.', default=False)
+     
 
+class DatamineConfig(MainConfig):
+    """Configuration for datamining."""   
