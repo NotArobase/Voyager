@@ -3,6 +3,8 @@ from pathlib import Path
 import attr
 from models.base import Model
 from typing import Sequence
+from typing import Dict, List
+
 
 @attr.s(auto_attribs=True)
 class Module(Model):
@@ -32,3 +34,36 @@ class MostUsedRoles(Model):
         # Write the data to the file
         fpath.write_text(json.dumps(data, sort_keys=True, indent=2))
         return fpath
+
+
+@attr.s(auto_attribs=True)
+class CommonArgsResult(Model):
+    """Classe pour stocker les arguments communs des modules."""
+    data: Dict[str, List[str]]  # Dictionnaire {module: [arguments communs]}
+
+    @property
+    def id(self) -> str:
+        """Identifiant unique."""
+        return "common_args_result"
+
+    def dump(self, directory: Path) -> Path:
+        """Sauvegarde les résultats en JSON dans un fichier."""
+        file_path = directory / "common_args_result.json"
+        with open(file_path, "w") as f:
+            json.dump(self.to_json_obj(), f, indent=2, sort_keys=True)
+        return file_path
+
+    @classmethod
+    def load(cls, id: str, file_path: Path) -> "CommonArgsResult":
+        """Charge les résultats à partir d'un fichier JSON."""
+        if not file_path.exists():
+            raise FileNotFoundError(f"Le fichier {file_path} n'existe pas.")
+
+        with open(file_path, "r") as f:
+            try:
+                data = json.load(f)
+                if "data" not in data:
+                    raise KeyError(f"Le fichier JSON {file_path} ne contient pas la clé 'data'.")
+                return cls(data=data["data"])
+            except json.JSONDecodeError:
+                raise ValueError(f"Erreur lors de la lecture du fichier JSON {file_path}.")

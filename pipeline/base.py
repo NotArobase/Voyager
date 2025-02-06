@@ -21,6 +21,7 @@ from util import capitalized_to_underscored
 
 from shutil import rmtree
 
+
 IDType = str
 
 
@@ -44,6 +45,9 @@ class WithIDAndDump(Protocol):
 
 ResultType = TypeVar('ResultType', bound=WithIDAndDump)
 ConfigType = TypeVar('ConfigType', bound=MainConfig)
+
+# Ajout explicite de l'étape dans STAGES
+
 
 _converter = cattr.Converter()
 _converter.register_structure_hook(
