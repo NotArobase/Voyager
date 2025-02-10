@@ -67,3 +67,35 @@ class CommonArgsResult(Model):
                 return cls(data=data["data"])
             except json.JSONDecodeError:
                 raise ValueError(f"Erreur lors de la lecture du fichier JSON {file_path}.")
+    
+
+
+@attr.s(auto_attribs=True)
+class LoopUsageResult(Model):
+    """Classe pour stocker les pourcentages d'utilisation de loop par module."""
+    data: Dict[str, float]  
+
+    @property
+    def id(self) -> str:
+        return "loop_usage_result"
+
+    def dump(self, directory: Path) -> Path:
+        """Sauvegarde les résultats sous forme de JSON."""
+        file_path = directory / "loop_usage_result.json"
+        with open(file_path, "w") as f:
+            json.dump({"data": self.data}, f, indent=2, sort_keys=True)
+        return file_path
+
+    @classmethod
+    def load(cls, id: str, file_path: Path) -> "LoopUsageResult":
+        if not file_path.exists():
+            raise FileNotFoundError(f"Le fichier {file_path} n'existe pas.")
+
+        with open(file_path, "r") as f:
+            try:
+                data = json.load(f)
+                if "data" not in data:
+                    raise KeyError(f"Le fichier JSON {file_path} ne contient pas la clé 'data'.")
+                return cls(data=data["data"])
+            except json.JSONDecodeError:
+                raise ValueError(f"Erreur lors de la lecture du fichier JSON {file_path}.")

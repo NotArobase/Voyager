@@ -49,4 +49,3 @@ def create_bar_chart(
     plt.close()  # Close the figure to avoid memory issues
 
     print(f"Chart saved to {output_path}")
-    return output_path
