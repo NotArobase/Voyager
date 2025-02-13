@@ -99,3 +99,68 @@ class LoopUsageResult(Model):
                 return cls(data=data["data"])
             except json.JSONDecodeError:
                 raise ValueError(f"Erreur lors de la lecture du fichier JSON {file_path}.")
+
+
+import attr
+import json
+from pathlib import Path
+from typing import Dict, List
+import pandas as pd
+from models.base import Model
+
+@attr.s(auto_attribs=True)
+class ModuleUsageResult(Model):
+    """Classe pour stocker l'utilisation des modules par rôle."""
+    data: Dict[str, Dict[str, int]]
+
+    @property
+    def id(self) -> str:
+        return "module_usage_result"
+
+    def dump(self, directory: Path) -> Path:
+        file_path = directory / "module_usage_result.json"
+        with open(file_path, "w") as f:
+            json.dump({"data": self.data}, f, indent=2, sort_keys=True)
+        return file_path
+
+    @classmethod
+    def load(cls, id: str, file_path: Path) -> "ModuleUsageResult":
+        if not file_path.exists():
+            raise FileNotFoundError(f"Le fichier {file_path} n'existe pas.")
+
+        with open(file_path, "r") as f:
+            try:
+                data = json.load(f)
+                if "data" not in data:
+                    raise KeyError(f"Le fichier JSON {file_path} ne contient pas la clé 'data'.")
+                return cls(data=data["data"])
+            except json.JSONDecodeError:
+                raise ValueError(f"Erreur lors de la lecture du fichier JSON {file_path}.")
+
+@attr.s(auto_attribs=True)
+class ModuleTransitionResult(Model):
+    data: Dict[str, Dict[str, float]]  
+
+    @property
+    def id(self) -> str:
+        return "module_transition_result"
+
+    def dump(self, directory: Path) -> Path:
+        file_path = directory / "module_transition_result.json"
+        with open(file_path, "w") as f:
+            json.dump({"data": self.data}, f, indent=2, sort_keys=True)
+        return file_path
+
+    @classmethod
+    def load(cls, id: str, file_path: Path) -> "ModuleTransitionResult":
+        if not file_path.exists():
+            raise FileNotFoundError(f"Le fichier {file_path} n'existe pas.")
+
+        with open(file_path, "r") as f:
+            try:
+                data = json.load(f)
+                if "data" not in data:
+                    raise KeyError(f"Le fichier JSON {file_path} ne contient pas la clé 'data'.")
+                return cls(data=data["data"])
+            except json.JSONDecodeError:
+                raise ValueError(f"Erreur lors de la lecture du fichier JSON {file_path}.")
