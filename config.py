@@ -6,7 +6,7 @@ import click
 
 from util.config import Config, Option
 
-from typing import Optional
+from typing import Any, Dict, Optional
 
 
 class MainConfig(Config):
@@ -83,4 +83,11 @@ class ExtractStructuralModelsConfig(MainConfig):
      
 
 class DatamineConfig(MainConfig):
-    """Configuration for datamining."""   
+    """Configuration for datamining."""
+    options: Optional[Dict[str, Any]] = Option(
+        'Options to pass to the algorithm script', default=None, required=False)
+    
+    path: Option[Path] = Option(
+        'Path to the algorithm script', click_type=click.Path(exists=True, readable=True, resolve_path=True),
+        converter=Path, required=True)
+   
