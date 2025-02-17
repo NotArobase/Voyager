@@ -23,7 +23,7 @@ class DatamineStage(Stage[Any, DatamineConfig]):
         external_algo = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(external_algo)
 
-        if not hasattr(external_algo, "run_algo"):
+        if not hasattr(external_algo, "algo"):
             raise AttributeError("Le script de l'algorithme doit contenir une fonction 'run_algo'.")
 
         # Exécuter l'algorithme en fonction du paramètre needs_data 
