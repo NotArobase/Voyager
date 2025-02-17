@@ -1,4 +1,5 @@
 import importlib.util
+import os
 from typing import Any, Optional
 from pipeline.base import Stage, ResultMap
 from config import DatamineConfig
@@ -6,9 +7,11 @@ from config import DatamineConfig
 class DatamineStage(Stage[Any, DatamineConfig]):
     """
     Stage générique qui délègue l'algorithme à un script externe.
-    
+
     Optionnellement (ou pas), le script peut définir une fonction `store_results` pour gérer le stockage.
     """
+
+    dataset_dir_name = 'Datamine'
 
     def run(self) -> ResultMap[Any]:
         """
@@ -28,16 +31,19 @@ class DatamineStage(Stage[Any, DatamineConfig]):
 
         # Exécuter l'algorithme en fonction du paramètre needs_data 
         if self.config.options:
-            result = external_algo.run_algo(self.config.output_directory, self.config.options)
+            result = external_algo.algo(self.config, "StructuralModels", self.config.options)
         else:
-            result = external_algo.run_algo(self.config.output_directory)
+            result = external_algo.algo(self.config, "StructuralModels")
+
+        filename = os.path.basename(self.config.path)
 
         # L'idée est de checker si mon script externe contient une fonction store_result. 
-        # De sorte, nous n'aurons pas toujours besoin de lancer certains algorithmes (gain de temps et d'energie)    
+        # De sorte, nous n'aurons pas toujours besoin de lancer certains algorithmes (gain de temps et d'energie) 
+        output = os.path.join(self.dataset_dir_name, filename)
         if hasattr(external_algo, "store_results"):
-            external_algo.store_results(result, self.config.output_directory)
+            external_algo.store_results(result, self.config, output)
 
-        return ResultMap(result)
+        return None
 
     def report_results(self, results: ResultMap[Any]) -> None:
         print("Résultats de l'algorithme :")

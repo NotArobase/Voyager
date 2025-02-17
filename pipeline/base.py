@@ -233,6 +233,9 @@ class Stage(ABC, Generic[ResultType, ConfigType]):
 
     def store_in_dataset(self, results: ResultMap[ResultType]) -> None:
         """Store the results of a stage in the dataset."""
+        if results is None:
+            return
+        
         dataset_dir_path = self.config.output_directory / self.dataset_dir_name
         dataset_dir_path.mkdir(exist_ok=True, parents=True)
         index: Dict[str, str] = {}
@@ -251,6 +254,8 @@ class Stage(ABC, Generic[ResultType, ConfigType]):
 
         Raises `CacheMiss` when not found in the dataset.
         """
+        print(self.config.output_directory)
+        print(self.dataset_dir_name)
         dataset_dir_path = self.config.output_directory / self.dataset_dir_name
         target_type: Type[ResultType] = self._extract_result_type()
         result_type = Mapping[str, target_type]  # type: ignore[valid-type]
