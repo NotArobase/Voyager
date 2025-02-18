@@ -90,4 +90,10 @@ class DatamineConfig(MainConfig):
     path: Option[Path] = Option(
         'Path to the algorithm script', click_type=click.Path(exists=True, readable=True, resolve_path=True),
         converter=Path, required=True)
-   
+
+    num_modules: Option[int] = Option(
+        'Number of top modules to include in correlation',
+        default=10,  # Valeur par défaut si non spécifié
+        required=True
+    )
+
