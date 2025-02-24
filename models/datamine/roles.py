@@ -4,7 +4,8 @@ import attr
 from models.base import Model
 from typing import Sequence
 from typing import Dict, List
-
+import json
+import pandas as pd
 
 @attr.s(auto_attribs=True)
 class Module(Model):
@@ -37,9 +38,31 @@ class MostUsedRoles(Model):
 
 
 @attr.s(auto_attribs=True)
+class ModuleCorrelation(Model):
+    module_a: str
+    module_b: str
+    correlation: float  # Coefficient de corrélation (entre -1 et 1)
+
+    @property
+    def id(self) -> str:
+        return f"{self.module_a}_{self.module_b}"
+
+    def dump(self, directory: Path) -> Path:
+        """Stocke la corrélation dans un fichier JSON."""
+        fpath = directory / f'{self.module_a}_{self.module_b}.json'
+        data = {
+            "module_a": self.module_a,
+            "module_b": self.module_b,
+            "correlation": self.correlation
+        }
+        fpath.write_text(json.dumps(data, sort_keys=True, indent=2))
+        return fpath
+
+
+@attr.s(auto_attribs=True)
 class CommonArgsResult(Model):
     """Classe pour stocker les arguments communs des modules."""
-    data: Dict[str, List[str]]  # Dictionnaire {module: [arguments communs]}
+    data: Dict[str, List[str]]  
 
     @property
     def id(self) -> str:
@@ -101,12 +124,6 @@ class LoopUsageResult(Model):
                 raise ValueError(f"Erreur lors de la lecture du fichier JSON {file_path}.")
 
 
-import attr
-import json
-from pathlib import Path
-from typing import Dict, List
-import pandas as pd
-from models.base import Model
 
 @attr.s(auto_attribs=True)
 class ModuleUsageResult(Model):
