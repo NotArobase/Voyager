@@ -44,7 +44,7 @@ def algo(config, roles_dir_name: str, options: Optional[Dict[str, Any]] = None):
     for role in results:
         modules_per_role[role.name] = [module.name for module in role.modules]
 
-    all_modules = sorted(set(module for modules in modules_per_role.values() for module in modules))  # 🔹 TRI FIXE
+    all_modules = sorted(set(module for modules in modules_per_role.values() for module in modules))  
 
     module_usage_matrix = {role_id: {module: 0 for module in all_modules} for role_id in sorted(modules_per_role.keys())}  # 🔹 TRI DES RÔLES
     
@@ -52,7 +52,7 @@ def algo(config, roles_dir_name: str, options: Optional[Dict[str, Any]] = None):
         for module in modules:
             module_usage_matrix[role_id][module] += 1
 
-    df = pd.DataFrame.from_dict(module_usage_matrix, orient="index")  # 🔹 GARANTIR UN ORDRE FIXE
+    df = pd.DataFrame.from_dict(module_usage_matrix, orient="index")  
 
     correlations = process_correlations(df, threshold=0.6, num_modules=num_modules)
 
@@ -98,4 +98,3 @@ def store_results(correlations: List[ModuleCorrelation], config, filename):
     for file in output_dir.glob("*.json"):
         file.unlink()
 
-    print(f"Tous les fichiers JSON temporaires ont été supprimés.")
