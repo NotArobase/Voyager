@@ -16,8 +16,8 @@ from test1 import algo as extract_roles
 import attr
 
 
-def process_correlations(df: pd.DataFrame, threshold: float = 0.5, num_modules: int = 5) -> List[ModuleCorrelation]:
-    correlation_matrix = df.corr()
+def process_correlations(df: pd.DataFrame, threshold: float = 0.1, num_modules: int = 8) -> List[ModuleCorrelation]:
+    correlation_matrix = df.corr(method="pearson", min_periods=1).fillna(0)
     correlations = []
 
     for module_a in correlation_matrix.columns:
@@ -36,38 +36,49 @@ def process_correlations(df: pd.DataFrame, threshold: float = 0.5, num_modules: 
 
 
 def algo(config, roles_dir_name: str, options: Optional[Dict[str, Any]] = None):
-    num_modules = options.get("num_modules", 5) if options else 5
+    num_modules = options.get("num_modules", 8) if options else 8
 
     results = extract_roles(config, roles_dir_name, options)
 
     modules_per_role = defaultdict(list)
+    print("mooooduuuless per roles", modules_per_role)
+
     for role in results:
         modules_per_role[role.name] = [module.name for module in role.modules]
 
-    all_modules = sorted(set(module for modules in modules_per_role.values() for module in modules))  
-
+    all_modules = sorted(set(module for modules in modules_per_role.values() for module in modules)) 
+    #print("allllll modulesss", all_modules)
     module_usage_matrix = {role_id: {module: 0 for module in all_modules} for role_id in sorted(modules_per_role.keys())}  # 🔹 TRI DES RÔLES
     
+
     for role_id, modules in modules_per_role.items():
         for module in modules:
+            #print("moo serrrrrrrr", module)  ##ici des les print je vois service 
             module_usage_matrix[role_id][module] += 1
 
-    df = pd.DataFrame.from_dict(module_usage_matrix, orient="index")  
+    df = pd.DataFrame.from_dict(module_usage_matrix, orient="index") 
+    print("Colonnes de df avant corrélation:", df.columns.tolist())
+    print("Valeurs de service avant correlation:", df["service"].tolist() if "service" in df.columns else "service non trouvé")
 
-    correlations = process_correlations(df, threshold=0.6, num_modules=num_modules)
+    threshold = config.options.get("threshold", 0.1)
+    print("thhhhhhhreeeeesshhhooooldd", threshold)
+    correlations = process_correlations(df, threshold, num_modules=8)
 
     store_results(correlations, config, "Datamine")
-
+    #print("les cooorrrrelations", correlations)
     return correlations
+
 
 
 def store_results(correlations: List[ModuleCorrelation], config, filename):
     output_dir = Path(config.output_directory) / filename
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    num_modules = config.options.get("num_modules", 5)
+    num_modules = config.options.get("num_modules", 8)
+
 
     for correlation in correlations:
+        #print("cccoooccco", correlation)
         correlation.dump(output_dir)
 
     print(f"Stockage temporaire terminé : {len(correlations)} fichiers JSON créés dans {output_dir}.")
@@ -76,7 +87,10 @@ def store_results(correlations: List[ModuleCorrelation], config, filename):
 
     modules = sorted(set([corr.module_a for corr in correlations] + [corr.module_b for corr in correlations]))  # 🔹 TRI FIXE
 
+    #print("mmmmooooo", modules)
     top_modules = sorted(modules[:num_modules])  
+    #print("toooooooooooooooop", top_modules)
+
 
     correlation_matrix = pd.DataFrame(index=top_modules, columns=top_modules, data=0.0)
 
@@ -94,7 +108,8 @@ def store_results(correlations: List[ModuleCorrelation], config, filename):
     plt.close()
 
     print(f"Matrice de corrélation enregistrée sous {correlation_image_path}")
-
+    
     for file in output_dir.glob("*.json"):
         file.unlink()
 
+    print(f"Tous les fichiers JSON temporaires ont été supprimés.")

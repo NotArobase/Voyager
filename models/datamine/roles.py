@@ -154,6 +154,26 @@ class ModuleUsageResult(Model):
             except json.JSONDecodeError:
                 raise ValueError(f"Erreur lors de la lecture du fichier JSON {file_path}.")
 
+
+
+@attr.s(auto_attribs=True)
+class ModuleTransition:
+    module_from: str
+    module_to: str
+    transition_probability: float
+
+    def dump(self, directory: Path):
+        fpath = directory / f"{self.module_from}_to_{self.module_to}.json"
+        data = {
+            "module_from": self.module_from,
+            "module_to": self.module_to,
+            "transition_probability": self.transition_probability
+        }
+        fpath.write_text(json.dumps(data, sort_keys=True, indent=2))
+        return fpath
+
+
+
 @attr.s(auto_attribs=True)
 class ModuleTransitionResult(Model):
     data: Dict[str, Dict[str, float]]  

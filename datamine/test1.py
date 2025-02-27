@@ -15,6 +15,8 @@ import util
 
 def algo(config, roles_dir_name: str, options: Optional[Dict[str, Any]] = None):
     """Go over each role and read the YAML files obtained from the previous stage."""
+    num_modules = options.get("num_modules", 8) if options else 8
+
     roles_directory_path = os.path.join(config.output_directory, roles_dir_name)  
     modules_per_role = defaultdict(lambda: Counter())
     role_ids = []
@@ -69,6 +71,7 @@ def algo(config, roles_dir_name: str, options: Optional[Dict[str, Any]] = None):
 
     
 def store_results(results, config, filename) -> None:
+    num_modules = config.options.get("num_modules", 8)
     """Store the results of a stage in the dataset."""
     dataset_dir_path = os.path.join(config.output_directory, filename)
     os.makedirs(dataset_dir_path, exist_ok=True)
@@ -107,7 +110,7 @@ def store_results(results, config, filename) -> None:
             module_usage[module] += count
 
     sorted_usage = sorted(module_usage.items(), key=lambda x: x[1], reverse=True)
-    top_50_modules = sorted_usage[:50]
+    top_50_modules = sorted_usage[:num_modules]
 
     # Plot the top 50 modules
     modules, counts = zip(*top_50_modules)
@@ -115,12 +118,12 @@ def store_results(results, config, filename) -> None:
     util.create_bar_chart(
         x_data=modules,
         y_data=counts,
-        title="Top 50 Most Used Modules",
+        title=f"Top {num_modules} Most Used Modules",
         xlabel="Modules",
         ylabel="Usage Count",
         output_directory=config.output_directory,
         output_dataset_name = filename,
-        output_filename="top_50_modules.png",
+        output_filename=f"top_{num_modules}_modules.png",
         figsize=(12, 8),
     )
 
