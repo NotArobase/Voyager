@@ -10,24 +10,11 @@ from typing import List, Optional, Dict, Any
 import shutil
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from models.datamine.roles import LoopUsage
 from test1 import algo as extract_roles  
 
 import attr
 
-
-@attr.s(auto_attribs=True)
-class LoopUsage:
-    module: str
-    loop_percentage: float
-
-    def dump(self, directory: Path):
-        fpath = directory / f"{self.module}_loop_usage.json"
-        data = {
-            "module": self.module,
-            "loop_percentage": self.loop_percentage
-        }
-        fpath.write_text(json.dumps(data, sort_keys=True, indent=2))
-        return fpath
 
 
 def process_loop_usage(yaml_files: List[str]) -> List[LoopUsage]:
@@ -77,6 +64,9 @@ def algo(config, roles_dir_name: str, options: Optional[Dict[str, Any]] = None):
 def store_results(loop_usage_results: List[LoopUsage], config, filename):
     output_dir = Path(config.output_directory) / filename
     output_dir.mkdir(parents=True, exist_ok=True)
+    num_modules = config.options.get("num_modules", 8)
+
+    print("nnnnnnnnnnnnnuuuuumber of modules", num_modules)
 
     for loop_usage in loop_usage_results:
         loop_usage.dump(output_dir)
@@ -96,7 +86,7 @@ def store_results(loop_usage_results: List[LoopUsage], config, filename):
 
     print(f"Les résultats ont été sauvegardés dans '{json_file_path}' et '{csv_file_path}'.")
 
-    top_loop_usage = sorted(loop_usage_dict.items(), key=lambda x: x[1], reverse=True)[:50]
+    top_loop_usage = sorted(loop_usage_dict.items(), key=lambda x: x[1], reverse=True)[:num_modules]
 
     if top_loop_usage:
         modules, percentages = zip(*top_loop_usage)
@@ -105,11 +95,11 @@ def store_results(loop_usage_results: List[LoopUsage], config, filename):
         plt.xticks(rotation=90)
         plt.xlabel("Modules")
         plt.ylabel("Loop Usage Percentage")
-        plt.title("Top 50 Modules Using Loops")
-        plt.savefig(output_dir / "top_50_loop_usage.png", dpi=300, bbox_inches="tight")
+        plt.title(f"Top {num_modules} Modules Using Loops")
+        plt.savefig(output_dir / f"top_{num_modules}_loop_usage.png", dpi=300, bbox_inches="tight")
         plt.close()
 
-        print("Graphique des 50 modules les plus utilisés avec loops généré avec succès.")
+        print(f"Graphique des {num_modules} modules les plus utilisés avec loops généré avec succès.")
 
     for file in output_dir.glob("*.json"):
         file.unlink()

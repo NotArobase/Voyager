@@ -59,6 +59,22 @@ class ModuleCorrelation(Model):
         return fpath
 
 
+
+
+@attr.s(auto_attribs=True)
+class ModuleArguments:
+    module: str
+    common_args: List[str]
+
+    def dump(self, directory: Path):
+        fpath = directory / f"{self.module}_args.json"
+        data = {
+            "module": self.module,
+            "common_args": self.common_args
+        }
+        fpath.write_text(json.dumps(data, sort_keys=True, indent=2))
+        return fpath
+
 @attr.s(auto_attribs=True)
 class CommonArgsResult(Model):
     """Classe pour stocker les arguments communs des modules."""
@@ -153,6 +169,22 @@ class ModuleUsageResult(Model):
                 return cls(data=data["data"])
             except json.JSONDecodeError:
                 raise ValueError(f"Erreur lors de la lecture du fichier JSON {file_path}.")
+
+
+
+@attr.s(auto_attribs=True)
+class LoopUsage:
+    module: str
+    loop_percentage: float
+
+    def dump(self, directory: Path):
+        fpath = directory / f"{self.module}_loop_usage.json"
+        data = {
+            "module": self.module,
+            "loop_percentage": self.loop_percentage
+        }
+        fpath.write_text(json.dumps(data, sort_keys=True, indent=2))
+        return fpath
 
 
 

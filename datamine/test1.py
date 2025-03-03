@@ -127,7 +127,7 @@ def store_results(results, config, filename) -> None:
         figsize=(12, 8),
     )
 
-    # Delete the CSV file
+    # Delete the CSV file 
     """
     csv_file_path = os.path.join(config.output_directory, filename, "modules_par_role.csv")
     if os.path.exists(csv_file_path):
