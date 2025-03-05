@@ -31,7 +31,7 @@ CONVERTER.register_structure_hook(
 CONVERTER.register_unstructure_hook(
         pendulum.DateTime, lambda dt: dt.to_rfc3339_string())
 
-
+CONVERTER.register_structure_hook(Union[int, str], lambda v, _: v)
 
 class MetadataMap:
     """Maps entity IDs to their JSON-parsed objects."""
