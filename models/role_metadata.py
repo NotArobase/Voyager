@@ -612,7 +612,7 @@ class Platform(GalaxyEntity):
 class RoleVersion(GalaxyEntity):
     """Model for a role version."""
 
-    entity_id: int
+    entity_id: Union[int, str]
     version: str
     release_date: Optional[pendulum.DateTime]
 
