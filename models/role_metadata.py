@@ -956,7 +956,7 @@ class _LazyDict(Mapping[int, _EntityType]):
         if self._storage is None:
             self._storage = CONVERTER.structure(
                     yaml.load(self._file_path.read_text(), Loader=Loader),
-                    Dict[int, self._etype])  # type: ignore[name-defined]
+                    Dict[Union[int, str], self._etype])  # type: ignore[name-defined]
 
 
     def __len__(self) -> int:
