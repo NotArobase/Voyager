@@ -1,37 +1,97 @@
-# Voyager: Explorer of the (Ansible) Galaxy
+# Voyager++
 
-Voyager is a tool to discover and collect a dataset of Ansible roles from [Ansible Galaxy](https://galaxy.ansible.com) and extract structural changes between versions of a role.
+Voyager++ is an advanced tool for collecting and analyzing datasets of Ansible roles from Ansible Galaxy. It builds on the original Voyager tool by Ruben Opdebeeck, addressing obsolescence and dependencies while introducing a datamining stage for deeper insights into role version histories. Designed for research projects, such as For-CoaLa, Voyager++ enables flexible data collection, repository analysis, and structural evolution tracking.
 
-## Requirements
-- Python >= 3.8
-- [Poetry](https://python-poetry.org/docs/#installation)
+## Features
 
-## Installing
-- `cd /path/to/voyager`
-- `poetry install`
+- **Data Collection**: Scrapes Ansible Galaxy for role information.
+- **Metadata Extraction**: Extracts structured metadata from collected roles.
+- **Repository Cloning**: Fetches role repositories for deeper analysis.
+- **Structural Analysis**: Tracks changes in role configurations over versions.
+- **Datamining**: Allows users to run custom analysis scripts.
 
-## Running
-- `poetry run -- python main.py`
-- Check the help text.
+## System Requirements
 
-### Examples
-Assuming `poetry shell` is spawned.
+- **OS**: Linux/macOS/Windows
+- **Python**: 3.8+
+- **Dependencies**: Managed via [Poetry](https://python-poetry.org/)
 
-- `python main.py --progress --report --dataset my_data galaxy-scrape`
-  Create a new dataset named `my_data` and start harvesting data from the Ansible Galaxy API.
-  Show progress while searching for roles, include a report on the gathered roles.
-- `python main.py --dataset my_data extract-role-metadata`
-  Extract the harvested API pages into the Galaxy metadata schema.
-- `python main.py --report --dataset my_data clone`
-  Clone repositories discovered in the harvested Galaxy metadata.
-- `python main.py --dataset my_data extract-git-metadata`
-  Extract git repository metadata, i.e. commits and tags, from the git repositories.
-- `python main.py --dataset my_data extract-structural-models`
-  Extract structural models for each git tag that matches the semantic versioning format.
-- `python main.py --dataset my_data extract-structural-models --commits`
-  Alternative to the previous command, but extract models for each commit rather than each version.
-- `python main.py --dataset my_data extract-structural-diffs`
-  Distil changes between the structural model versions.
+## Installation
 
-Hint: Commands can be mixed and omitted quite flexibly. For example, executing all phases of the pipeline could be executed in one command as such:
-- `python main.py --report --progress --dataset my_data extract-structural-diffs`
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/NotArobase/Voyager.git
+   cd Voyager++
+   ```
+2. Install dependencies:
+   ```sh
+   poetry install
+   ```
+3. Verify installation:
+   ```sh
+   poetry run -- python main.py --help
+   ```
+   Check the help text.
+
+## Usage
+
+### Basic Operations
+
+Assumig poetry shell is spawned:
+
+- **Scrape data from Ansible Galaxy**: Collects role information from Ansible Galaxy. Limit the number of collected roles using the option --max-roles INT.
+  ```sh
+  python main.py --progress --report --dataset my_data galaxy-scrape
+  ```
+- **Custom scrape with user-defined schema**: Collects role data while filtering unnecessary attributes using a custom schema.
+  ```sh
+  python main.py --progress --report --dataset my_data custom-scrape --schema path/to/my_schema.json
+  ```
+- **Extract role metadata**: Extracts structured metadata (e.g., role dependencies, GitHub repositories) from the scraped dataset.
+  ```sh
+  python main.py --dataset my_data extract-role-metadata
+  ```
+- **Clone repositories**: Downloads the Git repositories for roles found in metadata.
+  ```sh
+  python main.py --dataset my_data clone
+  ```
+- **Extract Git metadata**: Retrieves commit history, branches, and tags from cloned repositories.
+  ```sh
+  python main.py --dataset my_data extract-git-metadata
+  ```
+- **Extract structural models** (for semantic version tags): Analyzes the structure of Ansible roles at each versioned release.
+  ```sh
+  python main.py --dataset my_data extract-structural-models
+  ```
+- **Extract structural models** (for each commit instead of versions): Captures structural changes in roles at every commit.
+  ```sh
+  python main.py --dataset my_data extract-structural-models --commits
+  ```
+- **Run a datamining script**: Executes an external analysis script on the dataset.
+  ```sh
+  python main.py --dataset my_data datamine-stage --path path/to/my_script.py
+  ```
+
+  With every operation:
+  Use the --report option to print the details of the process in the console. Use the --delete option to remove the folder of the current stage if it exists already.
+
+## Customization
+
+Voyager++ supports easy customization for specific research needs:
+
+- **Custom Scraping**: Define a JSON schema to filter collected data.
+- **Datamining**: Plug in external analysis scripts. Said script must contain two specific functions (see user documentation).
+  The tool comes with a number of "default" relevant datamining scripts, stored in Voyager/pipeline/datamine
+- **Pipeline Extension**: Modify or add processing stages.
+
+## Troubleshooting
+
+- **Poetry not found?** Ensure it's installed and added to `PATH`.
+- **Errors in metadata extraction?** Check dataset integrity and rerun the scraping step.
+
+## Future Enhancements
+
+- Frontend integration for better visualization.
+- Containerization
+
+For detailed documentation, visit the full [Voyager++ repository](https://github.com/NotArobase/Voyager.git) or read the full user documentation.
