@@ -1,96 +1,67 @@
+from collections import Counter, defaultdict
 import os
 import yaml
-import json
-import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
-from pathlib import Path
-from collections import defaultdict, Counter
-from typing import List, Optional, Dict, Any
-import shutil
-import sys
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from models.datamine.roles import ModuleArguments
-from test1 import algo as extract_roles  
-from test4 import process_common_args
-
-def process_common_args(yaml_files: List[str]) -> List[ModuleArguments]:
-    modules_args = defaultdict(list)
+def algo(config, roles_dir_name: str, options=None):
+    """Analyse l'utilisation de 'when' pour chaque module des modules les plus utilisés."""
+    num_modules = options.get("num_modules", 10) if options else 10
+    roles_directory_path = os.path.join(config.output_directory, roles_dir_name)  
+    modules_per_role = defaultdict(lambda: Counter())
+    module_when_counts = Counter()
+    module_total_counts = Counter()
+    
+    if not os.path.exists(roles_directory_path):
+        raise FileNotFoundError(f"Roles directory '{roles_directory_path}' does not exist.")
 
     def process_yaml_file(file_path):
-        with open(file_path, "r") as file:
+        with open(file_path, 'r') as file:
             data = yaml.safe_load(file)
-
             for role in data:
-                if isinstance(role, dict) and role.get('role_rev') == "HEAD":
-                    for task_file in role.get('role_root', {}).get('task_files', []):
-                        for task in task_file.get('content', []):
+                if isinstance(role, dict):
+                    task_files = role.get('role_root', {}).get('task_files', [])
+                    for task_file in task_files:
+                        tasks = task_file.get('content', [])
+                        for task in tasks:
                             for block in task.get('block', []):
                                 action = block.get('action')
-                                args = block.get('args', {})
-                                if action and isinstance(args, dict):
-                                    modules_args[action].extend(args.keys())
-
-    for file_path in yaml_files:
-        process_yaml_file(file_path)
-
-    common_args_per_module = {module: list(set(args)) for module, args in modules_args.items()}
+                                if action:
+                                    modules_per_role[role.get('role_id')][action] += 1
+                                    module_total_counts[action] += 1
+                                    if 'when' in block:
+                                        module_when_counts[action] += 1
     
-    return common_args_per_module
+    for filename in os.listdir(roles_directory_path):
+        if filename.endswith(".yaml"):
+            process_yaml_file(os.path.join(roles_directory_path, filename))
 
+    # Trier les modules les plus utilisés
+    most_used_modules = [module for module, _ in module_total_counts.most_common(num_modules)]
+    
+    # Calculer le pourcentage d'utilisation de "when"
+    module_when_percentages = {module: (module_when_counts[module] / module_total_counts[module]) * 100 
+                               for module in most_used_modules if module_total_counts[module] > 0}
+    
+    return module_when_percentages
 
-def algo(config, roles_dir_name: str, options: Optional[Dict[str, Any]] = None):
-    directory_path = os.path.join(config.output_directory, roles_dir_name)
+def store_results(results, config, filename):
+    """Stocke et visualise les résultats de l'analyse."""
+    num_modules = config.options.get("num_modules", 10)
 
-    if not os.path.exists(directory_path):
-        raise FileNotFoundError(f"Le répertoire '{directory_path}' n'existe pas.")
-
-    yaml_files = [os.path.join(directory_path, f) for f in os.listdir(directory_path) if f.endswith(".yaml")]
-
-    common_args_per_module = process_common_args(yaml_files)
-    return common_args_per_module
-
-
-def store_results(common_args_per_module: List[ModuleArguments], config, filename):
-    output_dir = Path(config.output_directory) / filename
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    num_arguments = config.options.get("num_arguments", 7)  
-
-    all_arguments = sorted(set(arg for args in common_args_per_module.values() for arg in args))
-
-    arg_counter = Counter(arg for args in common_args_per_module.values() for arg in args)
-    top_arguments = [arg for arg, _ in arg_counter.most_common(num_arguments)]
-
-    module_arg_matrix = {module: {arg: 0 for arg in top_arguments} for module in common_args_per_module}
-
-    for module, args in common_args_per_module.items():
-        for arg in args:
-            if arg in top_arguments:  
-                module_arg_matrix[module][arg] = 1
-
-    df = pd.DataFrame.from_dict(module_arg_matrix, orient="index")
-
-    if df.shape[1] < 2:
-        print("not enough")
-        return
-
-    correlation_matrix = df.corr().fillna(0)
-
-    print("Matrice de corrélation des arguments :\n", correlation_matrix)
-
-    correlation_csv_path = output_dir / "argument_correlation_matrix.csv"
-    correlation_matrix.to_csv(correlation_csv_path)
-    print(f" Matrice de corrélation enregistrée en CSV sous {correlation_csv_path}")
-
-    plt.figure(figsize=(12, 10))
-    sns.heatmap(correlation_matrix, annot=True, fmt=".2f", cmap="coolwarm", linewidths=0.5)
-    plt.title(f"Matrice de Corrélation des {num_arguments} Arguments les Plus Utilisés")
-
-    correlation_image_path = output_dir / "argument_correlation_matrix.png"
-    plt.savefig(correlation_image_path, dpi=300, bbox_inches="tight")
-    plt.close()
-
-    print(f"Matrice de corrélation enregistrée sous {correlation_image_path}")  
-
+    output_file_path = os.path.join(config.output_directory, filename)
+    os.makedirs(output_file_path, exist_ok=True)
+    
+    # Tracer le graphique
+    plt.figure(figsize=(12, 6))
+    plt.bar(results.keys(), results.values())
+    plt.xlabel("Modules")
+    plt.ylabel("% d'utilisation de 'when'")
+    plt.title(f"Pourcentage d'existence de 'when' pour les {num_modules} modules les plus utilisés")
+    plt.xticks(rotation=45, ha='right')
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    
+    output_image_path = os.path.join(output_file_path, "when_usage_percentage.png")
+    plt.savefig(output_image_path)
+    plt.show()
+    
+    print(f"Graphique enregistré dans : {output_image_path}")
