@@ -64,7 +64,13 @@ class ExtractStructuralModels(
         failures = 0
         for repo, role_name, revs in task_list:
             git_repo_obj = git.Repo(repo.path)
-            save_branch = git_repo_obj.active_branch
+
+            # Check if repo is in detached HEAD state
+            if git_repo_obj.head.is_detached:
+                save_branch = git_repo_obj.head.commit  # Save the commit hash instead
+            else:
+                save_branch = git_repo_obj.active_branch  # Save the branch normally
+
             role_models = []
             try:
                 for sha1, rev in revs:
