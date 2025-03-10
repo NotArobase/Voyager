@@ -67,9 +67,9 @@ class ExtractStructuralModels(
 
             # Check if repo is in detached HEAD state
             if git_repo_obj.head.is_detached:
-                save_branch = git_repo_obj.head.commit  # Save the commit hash instead
+                save_branch = git_repo_obj.head.commit  # Save commit hash in detached HEAD
             else:
-                save_branch = git_repo_obj.active_branch  # Save the branch normally
+                save_branch = git_repo_obj.active_branch  # Save branch reference
 
             role_models = []
             try:
@@ -80,17 +80,20 @@ class ExtractStructuralModels(
                     else:
                         role_models.append(model)
 
-                # Also extract for the latest commit if we're extracting tags.
+                # Also extract for the latest commit if we're extracting tags
                 if not self.config.commits:
-                    save_branch.checkout(force=True)
+                    git_repo_obj.git.checkout('HEAD', force=True)
                     model = self.extract(git_repo_obj, role_name, 'HEAD', 'HEAD', rev_pbar)
                     if model is None:
                         failures += 1
                     else:
                         role_models.append(model)
             finally:
-                # Make sure to reset the repo to the HEAD from before
-                save_branch.checkout(force=True)
+                # Reset the repo to the previous state
+                if git_repo_obj.head.is_detached:
+                    git_repo_obj.git.checkout(save_branch.hexsha)  # Reset to the saved commit hash
+                else:
+                    save_branch.checkout(force=True)  # Reset to the saved branch
             results.append(MultiStructuralRoleModel(role_name, role_models))
         if rev_pbar is not None:
             rev_pbar.close()
