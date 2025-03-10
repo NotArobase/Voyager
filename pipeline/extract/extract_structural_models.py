@@ -23,6 +23,10 @@ from pipeline.extract.extract_git_metadata import ExtractGitMetadata
 
 from pprint import pprint
 
+def _log(text: str) -> None:
+    with Path('galaxy.log').open('at') as flog:
+        flog.write(text + '\n')
+
 class ExtractStructuralModels(
         Stage[MultiStructuralRoleModel, ExtractStructuralModelsConfig],
         requires=(ExtractRoleMetadata, Clone, ExtractGitMetadata)
@@ -105,6 +109,7 @@ class ExtractStructuralModels(
             return model
         except Exception as exc:
             tqdm.write(f'Failed to load {repo} {rev}: {exc}')
+            _log(f"EXTRACT ERROR | Repo: {repo} | Rev: {rev} | Error: {exc}")
             return None
 
     def get_role_repositories(
