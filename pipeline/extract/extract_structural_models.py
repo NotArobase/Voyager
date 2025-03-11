@@ -64,13 +64,10 @@ class ExtractStructuralModels(
         failures = 0
         for repo, role_name, revs in task_list:
             git_repo_obj = git.Repo(repo.path)
-
-            # Check if repo is in detached HEAD state
             if git_repo_obj.head.is_detached:
                 save_branch = git_repo_obj.head.commit.hexsha  # Save the commit hash instead
             else:
                 save_branch = git_repo_obj.active_branch  # Save the branch normally
-
             role_models = []
             try:
                 for sha1, rev in revs:
@@ -82,7 +79,7 @@ class ExtractStructuralModels(
 
                 # Also extract for the latest commit if we're extracting tags.
                 if not self.config.commits:
-                    git_repo_obj.git.checkout(save_branch, force=True)
+                    repo.git.checkout(save_branch, force=True)
                     model = self.extract(git_repo_obj, role_name, 'HEAD', 'HEAD', rev_pbar)
                     if model is None:
                         failures += 1
@@ -90,7 +87,7 @@ class ExtractStructuralModels(
                         role_models.append(model)
             finally:
                 # Make sure to reset the repo to the HEAD from before
-                save_branch.checkout(force=True)
+                repo.git.checkout(save_branch, force=True)
             results.append(MultiStructuralRoleModel(role_name, role_models))
         if rev_pbar is not None:
             rev_pbar.close()
