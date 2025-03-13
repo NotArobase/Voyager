@@ -35,6 +35,10 @@ Voyager++ is an advanced tool for collecting and analyzing datasets of Ansible r
 
 ## Usage
 
+### API
+
+For use of the Voyager API, please refer to the readme file found in folder voyager_api.
+
 ### Basic Operations
 
 Assumig poetry shell is spawned:
@@ -68,6 +72,7 @@ Assumig poetry shell is spawned:
   python main.py --dataset my_data extract-structural-models --commits
   ```
 - **Run a datamining script**: Executes an external analysis script on the dataset.
+
   ```sh
   python main.py --dataset my_data datamine-stage --path path/to/my_script.py
   ```
