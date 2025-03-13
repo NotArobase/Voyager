@@ -81,7 +81,11 @@ class ExtractStructuralModelsConfig(MainConfig):
 
     commits: Option[bool] = Option(
             'Extract a structural model for each commit. If disabled, extracts for semantic versions only.', default=False)
-     
+    max_roles: Option[int] = Option(
+        '--max-roles', 
+        default=None,  # Default to None to indicate no limit
+        required=False,
+    )
 
 class DatamineConfig(MainConfig):
     """Configuration for datamining."""
