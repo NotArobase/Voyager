@@ -42,7 +42,7 @@ class ExtractStructuralModels(
             clone: ResultMap[GitRepo]
     ) -> ResultMap[MultiStructuralRoleModel]:
         """Run the stage."""
-        role_repos = self.get_role_repositories(extract_role_metadata, clone, extract_git_metadata, self.config.max_roles)
+        role_repos = self.get_role_repositories(extract_role_metadata, clone, extract_git_metadata, self.config.max_roles, self.config.start_roles, self.config.end_roles)
         num_revs = sum(len(revs) for (_, _, revs) in role_repos)
         if not self.config.commits:
             num_revs += len(role_repos)
@@ -117,11 +117,18 @@ class ExtractStructuralModels(
 
     def get_role_repositories(
             self, role_meta: ResultMap[GalaxyMetadata], clone: ResultMap[GitRepo],
-            repo_meta: ResultMap[GitRepoMetadata], max_roles: Optional[int]
+            repo_meta: ResultMap[GitRepoMetadata], max_roles: Optional[int], start_roles: Optional[int], end_roles: Optional[int]
     ) -> List[Tuple[GitRepo, str, List[Tuple[str, str]]]]:
         results = []
         count = 0
-        for role in role_meta['dummy'].roles.values():
+        roles = list(role_meta['dummy'].roles.values())
+        if start_roles is not None and end_roles is not None:
+            roles = roles[start_roles:end_roles]
+        elif start_roles is not None:
+            roles = roles[start_roles:]
+        elif end_roles is not None:
+            roles = roles[:end_roles]
+        for role in roles:
             if max_roles is not None and count >= max_roles:
                 break
             repo_id = 'Repository:' + str(role.entity_id)
