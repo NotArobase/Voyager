@@ -1,7 +1,105 @@
-# Voyager: Explorer of the (Ansible) Galaxy
+# Voyager++
 
-Voyager is a tool to discover and collect a dataset of Ansible roles from [Ansible Galaxy](https://galaxy.ansible.com) and extract structural changes between versions of a role.
+Voyager++ is an advanced tool for collecting and analyzing datasets of Ansible roles from Ansible Galaxy. It builds on the original Voyager tool by Ruben Opdebeeck, addressing obsolescence and dependencies while introducing a datamining stage for deeper insights into role version histories. Designed for research projects, such as For-CoaLa, Voyager++ enables flexible data collection, repository analysis, and structural evolution tracking.
 
+## Features
+
+- **Data Collection**: Scrapes Ansible Galaxy for role information.
+- **Metadata Extraction**: Extracts structured metadata from collected roles.
+- **Repository Cloning**: Fetches role repositories for deeper analysis.
+- **Structural Analysis**: Tracks changes in role configurations over versions.
+- **Datamining**: Allows users to run custom analysis scripts.
+
+## System Requirements
+
+- **OS**: Linux/macOS/Windows
+- **Python**: 3.8+
+- **Dependencies**: Managed via [Poetry](https://python-poetry.org/)
+
+## Installation
+
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/NotArobase/Voyager.git
+   cd Voyager++
+   ```
+2. Install dependencies:
+   ```sh
+   poetry install
+   ```
+3. Verify installation:
+   ```sh
+   poetry run -- python main.py --help
+   ```
+   Check the help text.
+
+## Usage
+
+### API
+
+For use of the Voyager API, please refer to the readme file found in folder voyager_api.
+
+### Basic Operations
+
+Assumig poetry shell is spawned:
+
+- **Scrape data from Ansible Galaxy**: Collects role information from Ansible Galaxy. Limit the number of collected roles using the option --max-roles INT.
+  ```sh
+  python main.py --progress --report --dataset my_data galaxy-scrape
+  ```
+- **Custom scrape with user-defined schema**: Collects role data while filtering unnecessary attributes using a custom schema.
+  ```sh
+  python main.py --progress --report --dataset my_data custom-scrape --schema path/to/my_schema.json
+  ```
+- **Extract role metadata**: Extracts structured metadata (e.g., role dependencies, GitHub repositories) from the scraped dataset.
+  ```sh
+  python main.py --dataset my_data extract-role-metadata
+  ```
+- **Clone repositories**: Downloads the Git repositories for roles found in metadata.
+  ```sh
+  python main.py --dataset my_data clone
+  ```
+- **Extract Git metadata**: Retrieves commit history, branches, and tags from cloned repositories.
+  ```sh
+  python main.py --dataset my_data extract-git-metadata
+  ```
+- **Extract structural models** (for semantic version tags): Analyzes the structure of Ansible roles at each versioned release.
+  ```sh
+  python main.py --dataset my_data extract-structural-models
+  ```
+- **Extract structural models** (for each commit instead of versions): Captures structural changes in roles at every commit.
+  ```sh
+  python main.py --dataset my_data extract-structural-models --commits
+  ```
+- **Run a datamining script**: Executes an external analysis script on the dataset.
+
+  ```sh
+  python main.py --dataset my_data datamine-stage --path path/to/my_script.py
+  ```
+
+  With every operation:
+  Use the --report option to print the details of the process in the console. Use the --delete option to remove the folder of the current stage if it exists already.
+
+## Customization
+
+Voyager++ supports easy customization for specific research needs:
+
+- **Custom Scraping**: Define a JSON schema to filter collected data.
+- **Datamining**: Plug in external analysis scripts. Said script must contain two specific functions (see user documentation).
+  The tool comes with a number of "default" relevant datamining scripts, stored in Voyager/pipeline/datamine
+- **Pipeline Extension**: Modify or add processing stages.
+
+## Troubleshooting
+
+- **Poetry not found?** Ensure it's installed and added to `PATH`. If you have too many problems using Poetry; there exists a poetry-free version of Voyager found at: https://github.com/SarahBlevin/MyVoyager.git where you can download the dependencies in a venv via bash script.
+- **Errors in metadata extraction?** Check dataset integrity and rerun the scraping step.
+
+## Future Enhancements
+
+- Frontend integration for better visualization.
+- Containerization
+
+For detailed documentation, visit the full [Voyager++ repository](https://github.com/NotArobase/Voyager.git) or read the full user documentation.
 ## Requirements
 - Python >= 3.8
 - [Poetry](https://python-poetry.org/docs/#installation)
@@ -159,32 +257,21 @@ python main.py --dataset my_data datamine-stage --options '{"num_arguments":20}'
 ```
 ---
 
-## Test 8: 'When' Condition Usage Analysis
 
-**Logic:**  
-Analyzes Ansible most used modules to measure how frequently they use conditional statements (when).
-
-- **Options:**
-  - `num_arguments` *(optional, default=25)*: Defines the number of top arguments to analyze.
-
-- **Example:**
-```bash
-python main.py --dataset my_data datamine-stage --options '{"num_arguments":20}' --path "datamine/test9.py"
-```
 ---
 
-# Test9: Module Condition Analysis (`when` Conditions)
+## Test9: Module Condition Analysis (`when` Conditions)
 
 This script analyzes Ansible role YAML files to extract `when` conditions applied to modules. It identifies the most used conditions, their relationships (AND/OR logic), and generates visualizations.
 
-## 🔍 Logic
+** Logic:**
 - Extracts all `when` conditions associated with each module.
 - Normalizes conditions and splits them into AND/OR conditions.
 - Generates statistics on condition usage frequency.
 - Creates a CSV and JSON file listing conditions per module.
 - Produces bar charts visualizing the most used conditions and the modules with the highest number of conditions.
 
-## Available Options
+- **Options**
 - `num_modules` *(default: 25)*: Number of modules to include in the analysis.
 
 ## Example Execution
@@ -227,12 +314,3 @@ output_directory/
 │   │   ├── top_conditions_usage.png
 │   │   └── top_modules_conditioned.png
 
-
-Replace `<dataset_name>` and `<script_name>` with your actual values.
-
----
-
-## Notes:
-
-- Ensure YAML files are placed correctly in the specified dataset's `output_directory`.
-- Adjust `num_modules` or other parameters using the `--options` argument to tailor analyses to your needs.
