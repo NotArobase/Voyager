@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 def algo(config, roles_dir_name: str, options=None):
     """Analyse l'utilisation de 'when' pour chaque module des modules les plus utilisés."""
-    num_modules = options.get("num_modules", 10) if options else 10
+    num_modules = options.get("num_modules", 20) if options else 20
     roles_directory_path = os.path.join(config.output_directory, roles_dir_name)  
     modules_per_role = defaultdict(lambda: Counter())
     module_when_counts = Counter()
@@ -46,7 +46,7 @@ def algo(config, roles_dir_name: str, options=None):
 
 def store_results(results, config, filename):
     """Stocke et visualise les résultats de l'analyse."""
-    num_modules = config.options.get("num_modules", 10)
+    num_modules = config.options.get("num_modules", 25) if config.options else 25
 
     output_file_path = os.path.join(config.output_directory, filename)
     os.makedirs(output_file_path, exist_ok=True)
@@ -55,13 +55,13 @@ def store_results(results, config, filename):
     plt.figure(figsize=(12, 6))
     plt.bar(results.keys(), results.values())
     plt.xlabel("Modules")
-    plt.ylabel("% d'utilisation de 'when'")
-    plt.title(f"Pourcentage d'existence de 'when' pour les {num_modules} modules les plus utilisés")
+    plt.ylabel("% d'utilisation of 'when'")
+    plt.title(f"Percentage of 'when' Usage for   {num_modules} modules most used")
     plt.xticks(rotation=45, ha='right')
     plt.grid(axis='y', linestyle='--', alpha=0.7)
     
     output_image_path = os.path.join(output_file_path, "when_usage_percentage.png")
     plt.savefig(output_image_path)
-    plt.show()
+    #plt.show()
     
-    print(f"Graphique enregistré dans : {output_image_path}")
+    print(f"Graph saved in : {output_image_path}")

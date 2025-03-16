@@ -9,36 +9,12 @@ from collections import defaultdict, Counter
 from typing import List, Optional, Dict, Any
 import shutil
 import sys
-
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from test1 import algo as extract_roles  
 from test4 import process_common_args
-
+from datamine.models import ModuleArguments
 from pathlib import Path
 import json
-
-class ModuleArguments:
-    def __init__(self, module: str, common_args: list):
-        self.module = module
-        self.common_args = common_args
-
-    def to_dict(self):
-        return {
-            "module": self.module,
-            "common_args": self.common_args
-        }
-
-    def dump(self, output_dir: Path):
-        """Sauvegarde les arguments communs dans un fichier JSON."""
-        output_dir.mkdir(parents=True, exist_ok=True)
-        file_path = output_dir / f"{self.module}_args.json"
-
-        with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(self.to_dict(), f, indent=4)
-
-    def __repr__(self):
-        return f"ModuleArguments(module={self.module}, common_args={self.common_args})"
-
 
 def process_common_args(yaml_files: List[str]) -> List[ModuleArguments]:
     modules_args = defaultdict(list)
@@ -81,7 +57,7 @@ def store_results(common_args_per_module: List[ModuleArguments], config, filenam
     output_dir = Path(config.output_directory) / filename
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    num_arguments = config.options.get("num_arguments", 7)  
+    num_arguments = config.options.get("num_arguments", 20) if config.options else 20
 
     all_arguments = sorted(set(arg for args in common_args_per_module.values() for arg in args))
 
@@ -103,18 +79,18 @@ def store_results(common_args_per_module: List[ModuleArguments], config, filenam
 
     correlation_matrix = df.corr().fillna(0)
 
-    print("Matrice de corrélation des arguments :\n", correlation_matrix)
+    print("Argument correlation matrix:\n", correlation_matrix)
 
     correlation_csv_path = output_dir / "argument_correlation_matrix.csv"
     correlation_matrix.to_csv(correlation_csv_path)
-    print(f" Matrice de corrélation enregistrée en CSV sous {correlation_csv_path}")
+    print(f"Correlation matrix saved as CSV at {correlation_csv_path}")
 
     plt.figure(figsize=(12, 10))
     sns.heatmap(correlation_matrix, annot=True, fmt=".2f", cmap="coolwarm", linewidths=0.5)
-    plt.title(f"Matrice de Corrélation des {num_arguments} Arguments les Plus Utilisés")
+    plt.title(f"Correlation Matrix of the Top {num_arguments} Most Used Arguments")
 
     correlation_image_path = output_dir / "argument_correlation_matrix.png"
     plt.savefig(correlation_image_path, dpi=300, bbox_inches="tight")
     plt.close()
 
-    print(f"Matrice de corrélation enregistrée sous {correlation_image_path}")  
+    print(f"Correlation matrix saved as {correlation_image_path}")

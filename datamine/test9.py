@@ -9,20 +9,7 @@ from pathlib import Path
 from typing import List, Dict, Optional, Any
 import re
 import attr
-
-@attr.s(auto_attribs=True)
-class ModuleConditions:
-    module: str
-    conditions: List[str]
-
-    def dump(self, directory: Path):
-        fpath = directory / f"{self.module}_conditions.json"
-        data = {"module": self.module, "conditions": self.conditions}
-        fpath.write_text(json.dumps(data, sort_keys=True, indent=2))
-        return fpath
-
-
-
+from datamine.models import ModuleConditions
 def process_module_conditions(yaml_files: List[str]) -> List[ModuleConditions]:
     module_conditions = defaultdict(list)
 
@@ -73,28 +60,16 @@ def algo(config, roles_dir_name: str, options: Optional[Dict[str, Any]] = None):
     return module_conditions
 
 def split_conditions(condition: str) -> Dict[str, List[str]]:
-    """
-    Sépare une condition complexe en sous-conditions en fonction des opérateurs AND/OR.
-    - `A and (B or C)` sera transformé en:
-        - `AND`: ['A', '(B or C)']
-        - `OR`: ['B', 'C']
-    - `A or (B and C)` sera transformé en:
-        - `OR`: ['A', '(B and C)']
-        - `AND`: ['B', 'C']
-    """
     condition = condition.lower().strip()
     final_conditions = {'and': [], 'or': []}
 
-    # Détection de `A and (B or C)`
     match_and_or = re.match(r"^(.*?)\s+and\s+\((.*?)\)$", condition)
     if match_and_or:
         first_part = match_and_or.group(1).strip()  # A
         or_part = match_and_or.group(2).strip()  # B or C
 
-        # Séparer les OR à l'intérieur des parenthèses
         or_conditions = [c.strip() for c in re.split(r'\s+or\s+', or_part)]
         
-        # Ajout à AND (A et l'ensemble OR groupé)
         final_conditions['and'].append(first_part)
         final_conditions['and'].append(f"({or_part})")  
 
@@ -103,20 +78,16 @@ def split_conditions(condition: str) -> Dict[str, List[str]]:
 
         return final_conditions
 
-    # Détection de `A or (B and C)`
     match_or_and = re.match(r"^(.*?)\s+or\s+\((.*?)\)$", condition)
     if match_or_and:
         first_part = match_or_and.group(1).strip()  # A
         and_part = match_or_and.group(2).strip()  # B and C
 
-        # Séparer les AND à l'intérieur des parenthèses
         and_conditions = [c.strip() for c in re.split(r'\s+and\s+', and_part)]
         
-        # Ajout à OR (A et l'ensemble AND groupé)
         final_conditions['or'].append(first_part)
         final_conditions['or'].append(f"({and_part})")  
 
-        # Ajout à AND
         final_conditions['and'].extend(and_conditions)
 
         return final_conditions
@@ -133,12 +104,8 @@ def split_conditions(condition: str) -> Dict[str, List[str]]:
     return final_conditions
 
 def store_results(module_conditions: List[Any], config, filename):
-    """
-    Stocke les résultats d'analyse des conditions AND/OR en JSON, CSV et génère les matrices de corrélation.
-    Affiche maintenant les pourcentages de corrélation au lieu des fréquences brutes.
-    """
 
-    limit_number = config.options.get("limit_number", 25) if config.options else 25
+    limit_number = config.options.get("num_modules", 25) if config.options else 25
 
     output_dir = Path(config.output_directory) / filename
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -186,7 +153,6 @@ def store_results(module_conditions: List[Any], config, filename):
             # Ajouter les conditions séparées
             condition_usage.update(split_cond['and'] + split_cond['or'])
 
-            # **Correction ici : Assurer que seules les conditions du même bloc sont comptabilisées**
             block_and_conds = split_cond['and']  # Regrouper seulement les conditions AND d'un même bloc
             
             # Mise à jour des paires uniquement pour ce bloc (AND)
@@ -213,12 +179,12 @@ def store_results(module_conditions: List[Any], config, filename):
         sns.barplot(x=list(conditions), y=list(counts), palette="viridis")
         plt.xticks(rotation=90)
         plt.xlabel("Conditions")
-        plt.ylabel("Nombre d'utilisations")
-        plt.title(f"Top {limit_number} des conditions les plus utilisées")
+        plt.ylabel("Nombre of uses")
+        plt.title(f"Top {limit_number} of conditions most used")
         condition_usage_image_path = output_dir / "top_conditions_usage.png"
         plt.savefig(condition_usage_image_path, dpi=300, bbox_inches="tight")
         plt.close()
-        print(f"Diagramme des conditions les plus utilisées enregistré sous {condition_usage_image_path}")
+        print(f"Diagramm of most used conditions saved in {condition_usage_image_path}")
 
     # Tracer le diagramme des modules les plus conditionnés
     module_usage = {module: len(conds) for module, conds in conditions_dict.items()}
@@ -230,15 +196,15 @@ def store_results(module_conditions: List[Any], config, filename):
         sns.barplot(x=list(modules), y=list(module_counts), palette="mako")
         plt.xticks(rotation=90)
         plt.xlabel("Modules")
-        plt.ylabel("Nombre de conditions")
-        plt.title(f"Top {limit_number} des modules les plus conditionnés")
+        plt.ylabel("Number of Conditions")
+        plt.title(f"Top {limit_number} des modules with most conditions")
         module_usage_image_path = output_dir / "top_modules_conditioned.png"
         plt.savefig(module_usage_image_path, dpi=300, bbox_inches="tight")
         plt.close()
-        print(f"Diagramme des modules les plus conditionnés enregistré sous {module_usage_image_path}")
+        print(f"Diagramm of modules must conditioned saved in {module_usage_image_path}")
 
-  # Supprimer les fichiers JSON temporaires si nécessaire
+  # Supprimer les fichiers JSON 
     for file in output_dir.glob("*.json"):
        file.unlink()
-    print("Tous les fichiers JSON temporaires ont été supprimés.")
+    print("all json files are deleted.")
 

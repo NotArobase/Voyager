@@ -6,31 +6,13 @@ import seaborn as sns
 from pathlib import Path
 from collections import defaultdict
 from typing import List, Optional, Dict, Any
-from models.datamine.roles import Model, ModuleCorrelation
 import sys
 import shutil
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from test1 import algo as extract_roles  
 
-import attr
-
-
-@attr.s(auto_attribs=True)
-class StrongCorrelation:
-    module_a: str
-    module_b: str
-    correlation: float
-
-    def dump(self, directory: Path):
-        fpath = directory / f"{self.module_a}_to_{self.module_b}_correlation.json"
-        data = {
-            "module_a": self.module_a,
-            "module_b": self.module_b,
-            "correlation": self.correlation
-        }
-        fpath.write_text(json.dumps(data, sort_keys=True, indent=2))
-        return fpath
+from datamine.models import StrongCorrelation
 
 
 def process_strong_correlations(df: pd.DataFrame, threshold: float = 0.6) -> List[StrongCorrelation]:
@@ -76,19 +58,40 @@ def algo(config, roles_dir_name: str, options: Optional[Dict[str, Any]] = None):
 
     strong_correlations = process_strong_correlations(df, threshold=0.6)
 
-    store_results(strong_correlations, config, "StrongModuleCorrelations")
+    #store_results(strong_correlations, config, "StrongModuleCorrelations")
 
     return strong_correlations
 
 
+def filter_top_correlations(strong_correlations: List[StrongCorrelation], top_n: int = 20) -> pd.DataFrame:
+    """Filtre la matrice de corrélation pour ne garder que les 25 corrélations les plus fortes."""
+    if not strong_correlations:
+        return pd.DataFrame()
+
+    # Trier par corrélation absolue et prendre les `top_n` plus fortes
+    top_correlations = sorted(strong_correlations, key=lambda x: x.correlation, reverse=True)[:top_n]
+
+    # Récupérer les modules impliqués
+    modules = sorted(set([corr.module_a for corr in top_correlations] + [corr.module_b for corr in top_correlations]))
+
+    # Construire une nouvelle matrice de corrélation filtrée
+    correlation_matrix = pd.DataFrame(index=modules, columns=modules, data=0.0)
+
+    for corr in top_correlations:
+        correlation_matrix.at[corr.module_a, corr.module_b] = corr.correlation
+        correlation_matrix.at[corr.module_b, corr.module_a] = corr.correlation
+
+    print(f"Modules sélectionnés pour la heatmap : {list(modules)}")
+
+    return correlation_matrix
+
+
 def store_results(strong_correlations: List[StrongCorrelation], config, filename):
+    """Stocke les résultats et génère une heatmap avec seulement les 25 corrélations les plus fortes."""
     output_dir = Path(config.output_directory) / filename
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    for correlation in strong_correlations:
-        correlation.dump(output_dir)
-
-    print(f"Stockage temporaire terminé : {len(strong_correlations)} fichiers JSON créés dans {output_dir}.")
+    num_modules = config.options.get("num_modules", 25) if config.options else 25
 
     correlation_data = [
         {"module_a": corr.module_a, "module_b": corr.module_b, "correlation": corr.correlation}
@@ -105,24 +108,23 @@ def store_results(strong_correlations: List[StrongCorrelation], config, filename
 
     print(f"Les résultats ont été sauvegardés dans '{json_file_path}' et '{csv_file_path}'.")
 
-    modules = sorted(set([corr.module_a for corr in strong_correlations] + [corr.module_b for corr in strong_correlations]))
+    # Filtrer pour ne garder que les `num_modules` corrélations les plus fortes
+    filtered_matrix = filter_top_correlations(strong_correlations, num_modules)
 
-    correlation_matrix = pd.DataFrame(index=modules, columns=modules, data=0.0)
+    if not filtered_matrix.empty:
+        plt.figure(figsize=(12, 10))
+        sns.heatmap(filtered_matrix, annot=True, fmt=".2f", cmap="coolwarm", linewidths=0.5)
+        plt.title(f"Top {num_modules} Corrélations Fortes entre Modules")
 
-    for corr in strong_correlations:
-        correlation_matrix.at[corr.module_a, corr.module_b] = corr.correlation
-        correlation_matrix.at[corr.module_b, corr.module_a] = corr.correlation
+        correlation_image_path = output_dir / "strong_correlation_matrix.png"
+        plt.savefig(correlation_image_path, dpi=300, bbox_inches="tight")
+        plt.close()
 
-    plt.figure(figsize=(12, 10))
-    sns.heatmap(correlation_matrix, annot=True, fmt=".1f", cmap="coolwarm", linewidths=0.5)
-    plt.title("Matrice des Corrélations Fortes entre Modules")
+        print(f"Matrice des corrélations fortes enregistrée sous {correlation_image_path}")
+    else:
+        print("Aucune corrélation forte trouvée, aucune heatmap générée.")
 
-    correlation_image_path = output_dir / "strong_correlation_matrix.png"
-    plt.savefig(correlation_image_path, dpi=300, bbox_inches="tight")
-    plt.close()
-
-    print(f"Matrice des corrélations fortes enregistrée sous {correlation_image_path}")
-
+    # Nettoyage des fichiers temporaires JSON
     for file in output_dir.glob("*.json"):
         file.unlink()
 
