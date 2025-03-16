@@ -283,6 +283,7 @@ python main.py --dataset my_data datamine-stage --options '{"num_modules":25}' -
 Executing the scripts will produce organized output files in the following structure:
 
 ```
+```
 output_directory/
 ├── my_data/
 │   ├── test1/
