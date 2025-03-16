@@ -60,7 +60,7 @@ def algo(config, roles_dir_name: str, options: Optional[Dict[str, Any]] = None):
     return module_conditions
 
 def split_conditions(condition: str) -> Dict[str, List[str]]:
-    condition = condition.lower().strip()
+    condition = str(condition).strip()
     final_conditions = {'and': [], 'or': []}
 
     match_and_or = re.match(r"^(.*?)\s+and\s+\((.*?)\)$", condition)
