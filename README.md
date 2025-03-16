@@ -227,9 +227,9 @@ python main.py --dataset my_data datamine-stage --path "data/test6.py"
 
 ---
 
-## Test 7: Common Arguments per Module Analysis
+### **Test 7: Common Arguments per Module Analysis**
 
-**Logic:**  
+- **Logic:**  
 Identifies the most commonly used arguments across Ansible modules and analyzes correlations between these arguments to understand their co-occurrence.
 
 - **Options:**
@@ -243,7 +243,7 @@ python main.py --dataset my_data datamine-stage --options '{"num_arguments":20}'
 ---
 
 
-## Test 8: 'When' Condition Usage Analysis
+### **Test 8: 'When' Condition Usage Analysis**
 
 **Logic:**  
 Analyzes Ansible most used modules to measure how frequently they use conditional statements (when).
@@ -260,11 +260,11 @@ python main.py --dataset my_data datamine-stage --options '{"num_arguments":20}'
 
 ---
 
-## Test9: Module Condition Analysis (`when` Conditions)
+### **Test9: Module Condition Analysis (`when` Conditions)**
 
 This script analyzes Ansible role YAML files to extract `when` conditions applied to modules. It identifies the most used conditions, their relationships (AND/OR logic), and generates visualizations.
+- **Logic:**
 
-** Logic:**
 - Extracts all `when` conditions associated with each module.
 - Normalizes conditions and splits them into AND/OR conditions.
 - Generates statistics on condition usage frequency.
@@ -314,3 +314,4 @@ output_directory/
 │   │   ├── top_conditions_usage.png
 │   │   └── top_modules_conditioned.png
 
+```
