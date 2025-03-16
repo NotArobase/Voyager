@@ -42,7 +42,7 @@ class ExtractStructuralModels(
             clone: ResultMap[GitRepo]
     ) -> ResultMap[MultiStructuralRoleModel]:
         """Run the stage."""
-        role_repos = self.get_role_repositories(extract_role_metadata, clone, extract_git_metadata)
+        role_repos = self.get_role_repositories(extract_role_metadata, clone, extract_git_metadata, self.config.max_roles, self.config.start_roles, self.config.end_roles)
         num_revs = sum(len(revs) for (_, _, revs) in role_repos)
         if not self.config.commits:
             num_revs += len(role_repos)
@@ -64,7 +64,10 @@ class ExtractStructuralModels(
         failures = 0
         for repo, role_name, revs in task_list:
             git_repo_obj = git.Repo(repo.path)
-            save_branch = git_repo_obj.active_branch
+            if git_repo_obj.head.is_detached:
+                save_branch = git_repo_obj.head.commit.hexsha  # Save the commit hash instead
+            else:
+                save_branch = git_repo_obj.active_branch  # Save the branch normally
             role_models = []
             try:
                 for sha1, rev in revs:
@@ -76,7 +79,7 @@ class ExtractStructuralModels(
 
                 # Also extract for the latest commit if we're extracting tags.
                 if not self.config.commits:
-                    save_branch.checkout(force=True)
+                    git_repo_obj.git.checkout(save_branch, force=True)
                     model = self.extract(git_repo_obj, role_name, 'HEAD', 'HEAD', rev_pbar)
                     if model is None:
                         failures += 1
@@ -84,7 +87,7 @@ class ExtractStructuralModels(
                         role_models.append(model)
             finally:
                 # Make sure to reset the repo to the HEAD from before
-                save_branch.checkout(force=True)
+                git_repo_obj.git.checkout(save_branch, force=True)
             results.append(MultiStructuralRoleModel(role_name, role_models))
         if rev_pbar is not None:
             rev_pbar.close()
@@ -114,10 +117,20 @@ class ExtractStructuralModels(
 
     def get_role_repositories(
             self, role_meta: ResultMap[GalaxyMetadata], clone: ResultMap[GitRepo],
-            repo_meta: ResultMap[GitRepoMetadata]
+            repo_meta: ResultMap[GitRepoMetadata], max_roles: Optional[int], start_roles: Optional[int], end_roles: Optional[int]
     ) -> List[Tuple[GitRepo, str, List[Tuple[str, str]]]]:
         results = []
-        for role in role_meta['dummy'].roles.values():
+        count = 0
+        roles = list(role_meta['dummy'].roles.values())
+        if start_roles is not None and end_roles is not None:
+            roles = roles[start_roles:end_roles]
+        elif start_roles is not None:
+            roles = roles[start_roles:]
+        elif end_roles is not None:
+            roles = roles[:end_roles]
+        for role in roles:
+            if max_roles is not None and count >= max_roles:
+                break
             repo_id = 'Repository:' + str(role.entity_id)
             if repo_id not in clone:
                 continue
@@ -132,6 +145,7 @@ class ExtractStructuralModels(
             # If there's no commits, the repo is empty, so just skip it.
             if git_repo_metadata.commits:
                 results.append((git_repo, role.canonical_id, revs))
+                count += 1
 
         return results
 
