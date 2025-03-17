@@ -66,7 +66,7 @@ def algo(config, roles_dir_name: str, options: Optional[Dict[str, Any]] = None):
 
 def store_results(loop_usage_results: List[LoopUsage], config, filename):
     """Store results, save detailed CSV and generate bar chart for loop usage."""
-    num_modules = config.options.get("num_modules", 20)
+    num_modules = config.options.get("num_modules", 25) if config.options else 25
 
     output_dir = Path(config.output_directory) / filename
     output_dir.mkdir(parents=True, exist_ok=True)
