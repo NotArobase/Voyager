@@ -8,7 +8,7 @@ import util
 
 def algo(config, roles_dir_name: str, options: Optional[Dict[str, Any]] = None):
     """Go over each role and read the YAML files obtained from the previous stage."""
-    num_modules = options.get("num_modules", 8) if options else 8
+    num_modules = options.get("num_modules", 25) if options else 25
 
     roles_directory_path = os.path.join(config.output_directory, roles_dir_name)
     modules_per_role = defaultdict(lambda: Counter())  # Counts module usage per role
@@ -71,7 +71,7 @@ def algo(config, roles_dir_name: str, options: Optional[Dict[str, Any]] = None):
 
 
 def store_results(results, config, filename) -> None:
-    num_modules = config.options.get("num_modules", 20) if config.options else 20
+    num_modules = config.options.get("num_modules", 25) if config.options else 25
     """Store the results of a stage in the dataset."""
     dataset_dir_path = os.path.join(config.output_directory, filename)
     os.makedirs(dataset_dir_path, exist_ok=True)
