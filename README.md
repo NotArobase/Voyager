@@ -103,7 +103,7 @@ For detailed documentation, visit the full [Voyager++ repository](https://github
 
 # Datamine Analysis Commands
 
-This document explains the execution commands for each analysis script (`test1.py` through `test10.py`), their logic, and how to use them.
+This document explains the execution commands for each analysis script, their logic, and how to use them.
 
 ---
 
@@ -120,79 +120,80 @@ Replace `<dataset_name>` and `<script_name>` with your specific dataset and scri
 ### Example:
 
 ```bash
-python main.py --dataset my_data datamine-stage --options '{"num_modules":2}' --path "data/test1.py"
+python main.py --dataset my_data datamine-stage --options '{"num_modules":25}' --path "data/script1.py"
 ```
 
 ---
 
 ## Analysis Scripts
 
-### **Test1 (`test1.py`)**
+### **(`module_usage_analysis.py`)**
 - **Logic:** Parses YAML files to identify and count how frequently each module is used across different roles.
 - **Options:**
   - `num_modules` *(default: 25)* — Number of top modules to display.
 - **Example:**
 ```bash
-python main.py --dataset my_data datamine-stage --options '{"num_modules":25}' --path "data/test1.py"
+python main.py --dataset my_data datamine-stage --options '{"num_modules":25}' --path "datamine/module_usage_analysis.py"
 ```
 
 ---
 
-### **Test2 (`test2.py`)**
+### **(`module_correlations_analysis.py`)**
+
 - **Logic:** Creates a correlation matrix to visualize the relationships between modules based on their usage across roles.
 - **Options:**
   - `num_modules` *(default: 20)* — Number of top modules included in the correlation analysis.
 - **Example:**
 ```bash
-python main.py --dataset my_data datamine-stage --options '{"num_modules":20}' --path "data/test2.py"
+python main.py --dataset my_data datamine-stage --options '{"num_modules":20}' --path "datamine/module_correlations_analysis.py"
 ```
 
 ---
 
-### **Test3 (`test3.py`)**
+### **(`module_transition_analysis.py`)**
 - **Logic:** Computes a transition matrix indicating the likelihood of transitioning from one module to another within the roles' workflows, normalized to show proportional transitions.
 - **Options:**
   - `num_modules` *(default: 20)* — Number of top modules to analyze in the transitions.
 - **Example:**
 ```bash
-python main.py --dataset my_data datamine-stage --options '{"num_modules":20}' --path "data/test3.py"
+python main.py --dataset my_data datamine-stage --options '{"num_modules":20}' --path "datamine/module_transition_analysis.py"
 ```
 
 ---
 
-### **Test4 (`test4.py`)**
+### **(`argument_usage_analysis.py`)**
 - **Logic:** Identifies the most common arguments passed to modules and visualizes their frequency across all roles.
 - **Options:**
   - `num_arguments` *(default: 25)* — Number of most common arguments to visualize.
 - **Example:**
 ```bash
-python main.py --dataset my_data datamine-stage --options '{"num_arguments":25}' --path "data/test4.py"
+python main.py --dataset my_data datamine-stage --options '{"num_arguments":25}' --path "datamine/argument_usage_analysis.py"
 ```
 
 ---
 
-### **Test5 (`test5.py`)**
+### **(`loop_usage_analysis.py`)**
 - **Logic:** Calculates how frequently each module uses loops (repeated tasks) and presents this information as a percentage of total module usage.
 - **Options:**
   - `num_modules` *(default: 20)* — Number of top modules to visualize based on loop usage.
 - **Example:**
 ```bash
-python main.py --dataset my_data datamine-stage --options '{"num_modules":20}' --path "data/test5.py"
+python main.py --dataset my_data datamine-stage --options '{"num_modules":20}' --path "datamine/loop_usage_analysis.py"
 ```
 
 ---
 
-### **Test6 (`test6.py`)**
+### **(`strong_correlations_analysis.py`)**
 - **Logic:** Analyzes module usage data to identify strong correlations between modules, highlighting pairs frequently used together.
 - **Options:** *(None required by default)*
 - **Example:**
 ```bash
-python main.py --dataset my_data datamine-stage --path "data/test6.py"
+python main.py --dataset my_data datamine-stage --path "datamine/strong_correlations_analysis.py"
 ```
 
 ---
 
-### **Test 7: Common Arguments per Module Analysis**
+### ** Common Arguments per Module Analysis**
 
 - **Logic:**  
 Identifies the most commonly used arguments across Ansible modules and analyzes correlations between these arguments to understand their co-occurrence.
@@ -202,13 +203,13 @@ Identifies the most commonly used arguments across Ansible modules and analyzes 
 
 - **Example:**
 ```bash
-python main.py --dataset my_data datamine-stage --options '{"num_arguments":20}' --path "datamine/test7.py"
+python main.py --dataset my_data datamine-stage --options '{"num_arguments":20}' --path "datamine/argument_correlations_analysis.py"
 ```
 
 ---
 
 
-### **Test 8: 'When' Condition Usage Analysis**
+### **'When' Condition Usage Analysis**
 
 **Logic:**  
 Analyzes Ansible most used modules to measure how frequently they use conditional statements (when).
@@ -218,16 +219,16 @@ Analyzes Ansible most used modules to measure how frequently they use conditiona
 
 - **Example:**
 ```bash
-python main.py --dataset my_data datamine-stage --options '{"num_arguments":20}' --path "datamine/test8.py"
+python main.py --dataset my_data datamine-stage --options '{"num_arguments":20}' --path "datamine/when_usage_analysis.py"
 ```
 ---
 
 
 ---
 
-### **Test9: Module Condition Analysis (`when` Conditions)**
+### **Module Condition Analysis (`when` Conditions)**
 
-This script analyzes Ansible role YAML files to extract `when` conditions applied to modules. It identifies the most used conditions, their relationships (AND/OR logic), and generates visualizations.
+This script analyzes Ansible role YAML files to extract `when` conditions applied to modules. It identifies the most used conditions,  and generates visualizations.
 - **Logic:**
 
 - Extracts all `when` conditions associated with each module.
@@ -239,15 +240,31 @@ This script analyzes Ansible role YAML files to extract `when` conditions applie
 - **Options**
 - `num_modules` *(default: 25)*: Number of modules to include in the analysis.
 
+
+### **Module Condition Analysis (`when` Conditions)**
+
+This script analyzes Ansible role YAML files to extract `when` conditions applied to modules. It identifies the modules with most percentage of using when and generates visualizations.
+
+- **Options**
+- `num_modules` *(default: 25)*: Number of modules to include in the analysis.
+
+
 ## Example Execution
 ```bash
-python main.py --dataset my_data datamine-stage --options '{"num_modules":25}' --path "datamine/test_conditions.py"
+python main.py --dataset my_data datamine-stage --options '{"num_modules":25}' --path "datamine/conditions_percentage_analysis.py"
+
+
 
 ## Output Structure
 
 Executing the scripts will produce organized output files in the following structure:
 
 ```
+
+## Script Shell to run all script : script_datamining.sh 
+
+we can run this script shell to run all scripts. 
+
 ```
 output_directory/
 ├── my_data/
